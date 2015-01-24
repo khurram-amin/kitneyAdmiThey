@@ -13,12 +13,12 @@ OrderImages::OrderImages(String tPath)
 	{
 		cout << "Please enter a valid patd. Switching to the default path." << endl;
 		OrderImages::OrderImages();
-		//cout << imFolderPath << endl;
+		
 	}
 	else
 	{
 		imFolderPath = tPath;
-		//cout << imFolderPath << endl;
+		
 	}
 }
 
@@ -31,21 +31,18 @@ void OrderImages::readImFolderContents()
 		while ((ent = readdir(dir)) != NULL) {
 			if (strstr(ent->d_name, ".jpg"))
 			{
-				//printf("%s\n", ent->d_name);
+				
 				imNameList.push_back(ent->d_name);
-				/*for (uint8 i = 0; i < imNameList.size(); i++)
-				{
-					cout << imNameList[i] << endl;
-				}*/
+				
 			}
 		}
 		closedir(dir);
-		//cout << imNameList.size() << endl;
+		
 		(powerOfTwo((uint16)imNameList.size())) ? NUMBER_OF_PYRAMIDS = (uint8) log2(imNameList.size()) : NUMBER_OF_PYRAMIDS = (uint8)floor(log2(imNameList.size())) + 1;
-		//cout << (int) NUMBER_OF_PYRAMIDS << endl;
+		
 	}
 	else {
-		/* could not open directory */
+		
 		cout << "Cannot open directory. Check if it is either read protected or an invalid path." << endl;
 		return;
 	}
