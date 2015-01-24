@@ -7,6 +7,7 @@ OrderImages::OrderImages()
 	//cout << imFolderPath << endl;
 }
 
+
 OrderImages::OrderImages(String tPath)
 {
 	if (tPath.empty())
@@ -21,6 +22,7 @@ OrderImages::OrderImages(String tPath)
 		
 	}
 }
+
 
 void OrderImages::readImFolderContents()
 {
@@ -48,26 +50,47 @@ void OrderImages::readImFolderContents()
 	}
 }
 
+
 bool OrderImages::powerOfTwo(uint16 x)
 {
 	return !(x == 0) && !( x & (x - 1) );
 }
 
+
 void OrderImages::buildImPyramid()
-{
-	namedWindow("Display window", WINDOW_AUTOSIZE);
-	uint8 numImages = (uint8) imNameList.size();
+{	
+	numImages = (uint8) imNameList.size();
 	PYRAMID.resize(NUMBER_OF_PYRAMIDS, vector<Mat>(numImages, Mat::eye(3, 3, CV_8UC1)));
 	
 	string imName = "";
 	for (uint8 ii = 0; ii < numImages; ii++)
 	{
 		imName = imFolderPath + "\\" + imNameList[ii];
-		Mat imt_, im = imread(imName, CV_LOAD_IMAGE_GRAYSCALE);
+		Mat im = imread(imName, CV_LOAD_IMAGE_GRAYSCALE);
 		for (uint8 jj = 0; jj < NUMBER_OF_PYRAMIDS; jj++)
 		{			
 			resize(im, PYRAMID[jj][ii], Size(0, 0), (double)((double)(jj+1) / (double)NUMBER_OF_PYRAMIDS), (double)((double)(jj+1) / (double)NUMBER_OF_PYRAMIDS) , INTER_LINEAR );
 		}
 		imName = "";
+	}
+}
+
+
+void OrderImages::buildSIFTPyramid()
+{
+	SIFT siftObj;
+	Mat im;
+	KEYPOINTS.resize(NUMBER_OF_PYRAMIDS, vector<vector<KeyPoint>>(numImages, vector<KeyPoint> (1, KeyPoint())));
+	DESCRIPTORS.resize(NUMBER_OF_PYRAMIDS, vector<Mat>(numImages, Mat::zeros(3,3,CV_32FC1)));
+	for (uint8 ii = 0; ii < numImages; ii++)
+	{
+		for (uint8 jj = 0; jj < NUMBER_OF_PYRAMIDS; jj++)
+		{
+			
+			siftObj.operator()(PYRAMID[jj][ii], Mat(), KEYPOINTS[jj][ii], DESCRIPTORS[jj][ii]);
+			drawKeypoints(PYRAMID[jj][ii], KEYPOINTS[jj][ii], im);
+			//string fileName = writePath + "\\kp_" + to_string((_ULonglong)jj) + "_" + imNameList[ii];
+			//imwrite(fileName, im);
+		}
 	}
 }

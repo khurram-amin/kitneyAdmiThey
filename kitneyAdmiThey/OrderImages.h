@@ -6,9 +6,13 @@
 #include <string>
 #include <cmath>
 
+
 #include <opencv2\core\core.hpp>
 #include <opencv2\highgui\highgui.hpp>
 #include <opencv2\imgproc\imgproc.hpp>
+#include <opencv2\features2d\features2d.hpp>
+#include <opencv2\nonfree\nonfree.hpp>
+#include <opencv2\nonfree\features2d.hpp>
 
 using namespace std;
 using namespace cv;
@@ -20,9 +24,13 @@ class OrderImages
 {
 private:
 	string imFolderPath;
+	//string writePath = "D:\\Khurram\\Copy\\Copy\\Thesis\\ShortestPath\\Shape from Shadow - Super=8000\\Images\\KEYPOINTS_";
 	vector<std::string> imNameList;
 	uint8 NUMBER_OF_PYRAMIDS;
+	uint8 numImages;
 	vector< vector< Mat > > PYRAMID;
+	vector< vector< vector<KeyPoint> > > KEYPOINTS;
+	vector< vector< Mat > > DESCRIPTORS;
 
 public:
 	OrderImages();
@@ -30,5 +38,6 @@ public:
 	void readImFolderContents();
 	bool powerOfTwo(uint16);
 	void buildImPyramid();
+	void buildSIFTPyramid();
 
 };
