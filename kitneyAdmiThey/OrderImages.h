@@ -7,6 +7,8 @@
 #include <cmath>
 
 #include <opencv2\core\core.hpp>
+#include <opencv2\highgui\highgui.hpp>
+#include <opencv2\imgproc\imgproc.hpp>
 
 using namespace std;
 using namespace cv;
@@ -20,11 +22,13 @@ private:
 	string imFolderPath;
 	vector<std::string> imNameList;
 	uint8 NUMBER_OF_PYRAMIDS;
+	vector< vector< Mat > > PYRAMID;
 
 public:
 	OrderImages();
 	OrderImages(String);
 	void readImFolderContents();
-	bool powerOfTwo(uint16);	
+	bool powerOfTwo(uint16);
+	void buildImPyramid();
 
 };
