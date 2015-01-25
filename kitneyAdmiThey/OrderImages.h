@@ -13,6 +13,7 @@
 #include <opencv2\features2d\features2d.hpp>
 #include <opencv2\nonfree\nonfree.hpp>
 #include <opencv2\nonfree\features2d.hpp>
+#include <opencv2\flann\flann.hpp>
 
 using namespace std;
 using namespace cv;
@@ -39,5 +40,7 @@ public:
 	bool powerOfTwo(uint16);
 	void buildImPyramid();
 	void buildSIFTPyramid();
+	void findMatchesFLANN(Mat, vector<Mat>, vector<vector<DMatch>>, vector<vector<DMatch>>);
+	void matchDespMOCK(vector<vector<DMatch>>, vector<vector<DMatch>>);
 
 };
