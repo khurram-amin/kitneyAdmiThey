@@ -131,3 +131,20 @@ void OrderImages::matchDespMOCK(vector<vector<DMatch>>& outMatches, vector<vecto
 {
 	findMatchesFLANN(DESCRIPTORS[0][0], DESCRIPTORS[0], outMatches, outGoodMatches);
 }
+
+
+Mat OrderImages::computeHomographyRANSAC(vector<KeyPoint> im1_kp, vector<KeyPoint> im2_kp, vector<DMatch> matches)
+{
+	vector<Point2f> im1_filtered, im2_filtered;
+	for (uint16 i = 0; i < matches.size(); i++)
+	{
+		// Assumption: im1_kp is the first image i.e. the image who is compared with all other images.
+		// Assumption: queryIdx belongs to first image i.e. the image who is compared with all other images.
+		im1_filtered.push_back( im1_kp[ matches[i].queryIdx ].pt );
+		im2_filtered.push_back( im2_kp[ matches[i].trainIdx ].pt );
+	}
+
+	Mat H = findHomography(im1_filtered, im2_filtered, CV_RANSAC);
+
+	return H;
+}

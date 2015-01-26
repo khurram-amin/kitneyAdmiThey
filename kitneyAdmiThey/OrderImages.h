@@ -14,6 +14,7 @@
 #include <opencv2\nonfree\nonfree.hpp>
 #include <opencv2\nonfree\features2d.hpp>
 #include <opencv2\flann\flann.hpp>
+#include <opencv2\calib3d\calib3d.hpp>
 
 using namespace std;
 using namespace cv;
@@ -42,5 +43,6 @@ public:
 	void buildSIFTPyramid();
 	void findMatchesFLANN(Mat, vector<Mat>&, vector<vector<DMatch>>&, vector<vector<DMatch>>&);
 	void matchDespMOCK(vector<vector<DMatch>>&, vector<vector<DMatch>>&);
+	Mat computeHomographyRANSAC(vector<KeyPoint> im1_kp, vector<KeyPoint> im2_kp, vector<DMatch> matches);
 
 };
