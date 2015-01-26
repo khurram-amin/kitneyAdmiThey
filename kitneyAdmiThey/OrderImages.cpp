@@ -96,7 +96,7 @@ void OrderImages::buildSIFTPyramid()
 }
 
 
-void OrderImages::findMatchesFLANN(Mat desp1, vector<Mat> otherDesp, vector<vector<DMatch>> outMatches, vector<vector<DMatch>> outGoodMatches)
+void OrderImages::findMatchesFLANN(Mat desp1, vector<Mat>& otherDesp, vector<vector<DMatch>>& outMatches, vector<vector<DMatch>>& outGoodMatches)
 {
 	FlannBasedMatcher fMatcherObj;
 	uint8 numOfImages_atClevel = (uint8)otherDesp.size();
@@ -127,7 +127,7 @@ void OrderImages::findMatchesFLANN(Mat desp1, vector<Mat> otherDesp, vector<vect
 }
 
 
-void OrderImages::matchDespMOCK(vector<vector<DMatch>> outMatches, vector<vector<DMatch>> outGoodMatches)
+void OrderImages::matchDespMOCK(vector<vector<DMatch>>& outMatches, vector<vector<DMatch>>& outGoodMatches)
 {
 	findMatchesFLANN(DESCRIPTORS[0][0], DESCRIPTORS[0], outMatches, outGoodMatches);
 }

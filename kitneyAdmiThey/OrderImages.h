@@ -40,7 +40,7 @@ public:
 	bool powerOfTwo(uint16);
 	void buildImPyramid();
 	void buildSIFTPyramid();
-	void findMatchesFLANN(Mat, vector<Mat>, vector<vector<DMatch>>, vector<vector<DMatch>>);
-	void matchDespMOCK(vector<vector<DMatch>>, vector<vector<DMatch>>);
+	void findMatchesFLANN(Mat, vector<Mat>&, vector<vector<DMatch>>&, vector<vector<DMatch>>&);
+	void matchDespMOCK(vector<vector<DMatch>>&, vector<vector<DMatch>>&);
 
 };
