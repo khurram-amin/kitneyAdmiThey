@@ -124,6 +124,11 @@ void OrderImages::findMatchesFLANN(Mat desp1, vector<Mat>& otherDesp, vector<vec
 		}
 		
 	}
+	for (uint16 i = 0; i < outGoodMatches.size(); i++)
+	{
+		outMatches[i].erase(outMatches[i].begin());
+		outGoodMatches[i].erase(outGoodMatches[i].begin());
+	}
 }
 
 
@@ -133,7 +138,7 @@ void OrderImages::matchDespMOCK(vector<vector<DMatch>>& outMatches, vector<vecto
 }
 
 
-Mat OrderImages::computeHomographyRANSAC(vector<KeyPoint> im1_kp, vector<KeyPoint> im2_kp, vector<DMatch> matches)
+Mat OrderImages::computeHomographyRANSAC(const vector<KeyPoint>& im1_kp, const vector<KeyPoint>& im2_kp, const vector<DMatch>& matches)
 {
 	vector<Point2f> im1_filtered, im2_filtered;
 	for (uint16 i = 0; i < matches.size(); i++)
@@ -146,5 +151,12 @@ Mat OrderImages::computeHomographyRANSAC(vector<KeyPoint> im1_kp, vector<KeyPoin
 
 	Mat H = findHomography(im1_filtered, im2_filtered, CV_RANSAC);
 
+	return H;
+}
+
+
+Mat OrderImages::computeHMOCK(const vector<DMatch>& matches)
+{
+	Mat H = computeHomographyRANSAC(KEYPOINTS[0][0], KEYPOINTS[0][1], matches);
 	return H;
 }

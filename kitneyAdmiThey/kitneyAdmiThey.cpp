@@ -16,6 +16,8 @@ int _tmain(int argc, _TCHAR* argv[])
 
 	vector<vector<DMatch>> match, good_match;
 	oIm.matchDespMOCK(match, good_match);
+
+	Mat H = oIm.computeHMOCK(good_match[1]);
 	
 
 	waitKey(10000);

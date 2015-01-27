@@ -5,6 +5,7 @@
 #include <dirent.h>
 #include <string>
 #include <cmath>
+#include <vector>
 
 
 #include <opencv2\core\core.hpp>
@@ -43,6 +44,7 @@ public:
 	void buildSIFTPyramid();
 	void findMatchesFLANN(Mat, vector<Mat>&, vector<vector<DMatch>>&, vector<vector<DMatch>>&);
 	void matchDespMOCK(vector<vector<DMatch>>&, vector<vector<DMatch>>&);
-	Mat computeHomographyRANSAC(vector<KeyPoint> im1_kp, vector<KeyPoint> im2_kp, vector<DMatch> matches);
+	Mat computeHomographyRANSAC(const vector<KeyPoint>& im1_kp, const vector<KeyPoint>& im2_kp, const vector<DMatch>& matches);
+	Mat computeHMOCK(const vector<DMatch>&);
 
 };
