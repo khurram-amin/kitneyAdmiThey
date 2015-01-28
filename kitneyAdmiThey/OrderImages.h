@@ -46,5 +46,10 @@ public:
 	void matchDespMOCK(vector<vector<DMatch>>&, vector<vector<DMatch>>&);
 	Mat computeHomographyRANSAC(const vector<KeyPoint>& im1_kp, const vector<KeyPoint>& im2_kp, const vector<DMatch>& matches);
 	Mat computeHMOCK(const vector<DMatch>&);
-
+	void inOrOut(const vector<Point2f>&, const vector<Point2f>&, vector<bool>&);
+	void normalOfLine(const vector<Point2f>&, Point2f&);
+	bool intersBW2lines(const vector<Point2f>&, const vector<Point2f>&, Point2f&);
+	void overlappingArea(const vector<Point2f>&, const vector<Point2f>&, vector<Point2f>&);
+	float computeOverlappedArea(const Size, const Size, const Mat);
+	float computeAreaMOCK(uint8, uint8, Mat);
 };

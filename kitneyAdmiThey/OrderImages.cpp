@@ -157,6 +157,129 @@ Mat OrderImages::computeHomographyRANSAC(const vector<KeyPoint>& im1_kp, const v
 
 Mat OrderImages::computeHMOCK(const vector<DMatch>& matches)
 {
-	Mat H = computeHomographyRANSAC(KEYPOINTS[0][0], KEYPOINTS[0][1], matches);
+	Mat H = computeHomographyRANSAC(KEYPOINTS[0][0], KEYPOINTS[0][0], matches);
 	return H;
+}
+
+
+void OrderImages::inOrOut(const vector<Point2f>& line, const vector<Point2f>& vectices2Label, vector<bool>& outLabels)
+{
+	Point2f lineNormal;
+	normalOfLine(line, lineNormal);
+	outLabels.resize(vectices2Label.size(), false);
+	for (uint8 i = 0; i < vectices2Label.size() - 1; i++)
+	{
+		cout << (lineNormal).dot(vectices2Label[i + 1] - vectices2Label[i]) << endl;
+		( (lineNormal).dot(vectices2Label[i + 1] - vectices2Label[i]) > -2e-1 ) ? outLabels[i] = true : outLabels[i] = false;
+ 	}
+	outLabels[outLabels.size() - 1] = outLabels[0];
+}
+
+
+void OrderImages::normalOfLine(const vector<Point2f>& inLine, Point2f& outNormal)
+{
+	Point2f P = inLine[0];
+	Point2f Q = inLine[1];
+	Point2f diff = Q - P;
+	diff.x = diff.x / (float) norm(diff);	
+	diff.y = diff.y / (float) norm(diff);
+	outNormal.x = -1 * diff.y;
+	outNormal.y =      diff.x;
+}
+
+
+bool OrderImages::intersBW2lines(const vector<Point2f>& L1, const vector<Point2f>& L2, Point2f& outIntersection)
+{
+	Point2f lengthL1 = L1[1] - L1[0];
+	Point2f lengthL2 = L2[1] - L2[0];
+	Point2f diffX = L2[0] - L1[0];
+	float cross = lengthL1.x * lengthL2.y - lengthL1.y * lengthL2.x;
+	if (abs(cross) < 1e-8)
+	{
+		return false;
+	}
+	float t = (diffX.x * lengthL2.y - diffX.y * lengthL2.x) / cross;
+	outIntersection = L1[0] + t * lengthL1;
+	return true;
+}
+
+
+void OrderImages::overlappingArea(const vector<Point2f>& C1, const vector<Point2f>& C2, vector<Point2f>& overlappedRegion)
+{
+	vector<Point2f> EVW = C2;
+	vector < bool > vCW_inOutStatus;
+	vector<Point2f> refEdgeVW;
+	// For each edge of the viewing window
+	for (uint8 i = 0; i < C1.size()-1; i++)
+	{
+		refEdgeVW.push_back(C1[i]);		refEdgeVW.push_back(C1[i+1]);
+		inOrOut(refEdgeVW, EVW, vCW_inOutStatus);
+
+		for (uint8 j = 0; j < vCW_inOutStatus.size()-1; j++)
+		{
+			if (vCW_inOutStatus[j])
+				if (vCW_inOutStatus[j + 1])
+					overlappedRegion.push_back(EVW[j + 1]);
+				else
+				{
+					Point2f interPt_;
+					vector<Point2f> L1, L2;
+					L1.push_back(C1[i]);	L1.push_back(C1[i+1]);
+					L2.push_back(EVW[j]);	L2.push_back(EVW[j + 1]);
+					intersBW2lines(L1, L2, interPt_);
+					overlappedRegion.push_back(interPt_);
+				}
+			else
+			{
+				if (vCW_inOutStatus[j + 1])
+				{
+					Point2f interPt_;
+					vector<Point2f> L1, L2;
+					L1.push_back(C1[i]);	L1.push_back(C1[i + 1]);
+					L2.push_back(EVW[j]);	L2.push_back(EVW[j + 1]);
+					intersBW2lines(L1, L2, interPt_);
+					overlappedRegion.push_back(interPt_);
+					overlappedRegion.push_back(EVW[j + 1]);
+				}
+			}
+		}
+		refEdgeVW.clear();
+		EVW.clear();
+		EVW = overlappedRegion;
+		overlappedRegion.clear();
+		vCW_inOutStatus.clear();
+
+	}
+	overlappedRegion = EVW;
+}
+
+
+float OrderImages::computeOverlappedArea(const Size im1, const Size im2, const Mat H)
+{
+	vector<Point2f> C1, C2, C2t_;
+	C1.push_back(Point2f(0, 0));	C1.push_back(Point2f(0, im1.width - 1));	C1.push_back(Point2f(im1.height - 1, im1.width - 1));	C1.push_back(Point2f(im1.height - 1, 0));	C1.push_back(Point2f(0, 0));
+	C2.push_back(Point2f(1, 1));	C2.push_back(Point2f(1, im2.width - 2));	C2.push_back(Point2f(im2.height - 2, im2.width - 2));	C2.push_back(Point2f(im2.height - 2, 1));	C2.push_back(Point2f(1, 1));
+
+	perspectiveTransform(C2, C2t_, H);
+
+	vector<Point2f> ROI;
+	overlappingArea(C1, C2t_, ROI);
+	for (uint8 i = 0; i < ROI.size(); i++)
+	{
+		cout << ROI[i] << endl;
+	}
+
+	double areaC1 = im1.width * im1.height;
+	double areaROI = contourArea(ROI);
+
+	return (float)areaROI;
+	//return (float) ( areaROI / areaC1 );
+}
+
+float OrderImages::computeAreaMOCK(uint8 im1N, uint8 im2N, Mat H)
+{
+	Size im1, im2;
+	im1 = PYRAMID[0][im1N].size();
+	im2 = PYRAMID[0][im2N].size();
+	return computeOverlappedArea(im1, im2, H);
 }
