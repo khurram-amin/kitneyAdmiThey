@@ -31,7 +31,7 @@ void OrderImages::readImFolderContents()
 	if ((dir = opendir(imFolderPath.c_str())) != NULL) {
 		/* print all the files and directories within directory */
 		while ((ent = readdir(dir)) != NULL) {
-			if (strstr(ent->d_name, ".jpg"))
+			if ((strstr(ent->d_name, ".JPG")) || (strstr(ent->d_name, ".jpg")))
 			{
 
 				imNameList.push_back(ent->d_name);
@@ -112,12 +112,10 @@ void OrderImages::findMatchesFLANN(Mat desp1, vector<Mat>& otherDesp, vector<vec
 			if (dist < min_dist) min_dist = dist;
 			if (dist > max_dist) max_dist = dist;
 		}
-		cout << "-- Max dist : " << max_dist << endl;
-		cout << "-- Min dist : " << min_dist << endl;
-
+		
 		for (uint16 k = 0; k < desp1.rows; k++)
 		{
-			if (outMatches[i][k].distance <= max(2 * min_dist, 0.99))
+			if (outMatches[i][k].distance <= max(3 * min_dist, 0.99))
 			{
 				outGoodMatches[i].push_back(outMatches[i][k]);
 			}
@@ -138,26 +136,32 @@ void OrderImages::matchDespMOCK(vector<vector<DMatch>>& outMatches, vector<vecto
 }
 
 
-Mat OrderImages::computeHomographyRANSAC(const vector<KeyPoint>& im1_kp, const vector<KeyPoint>& im2_kp, const vector<DMatch>& matches)
+bool OrderImages::computeHomographyRANSAC(const vector<KeyPoint>& im1_kp, const vector<KeyPoint>& im2_kp, const vector<DMatch>& matches, Mat& outH)
 {
 	vector<Point2f> im1_filtered, im2_filtered;
-	for (uint16 i = 0; i < matches.size(); i++)
+	if ((matches.size() > 0.1*im1_kp.size()) && (matches.size() > 0.1*im2_kp.size()))
 	{
-		// Assumption: im1_kp is the first image i.e. the image who is compared with all other images.
-		// Assumption: queryIdx belongs to first image i.e. the image who is compared with all other images.
-		im1_filtered.push_back( im1_kp[ matches[i].queryIdx ].pt );
-		im2_filtered.push_back( im2_kp[ matches[i].trainIdx ].pt );
+		for (uint16 i = 0; i < matches.size(); i++)
+		{
+			// Assumption: im1_kp is the first image i.e. the image who is compared with all other images.
+			// Assumption: queryIdx belongs to first image i.e. the image who is compared with all other images.
+			im1_filtered.push_back(im1_kp[matches[i].queryIdx].pt);
+			im2_filtered.push_back(im2_kp[matches[i].trainIdx].pt);
+		}
+
+		outH = findHomography(im1_filtered, im2_filtered, CV_RANSAC);
+
+		return true;
 	}
-
-	Mat H = findHomography(im1_filtered, im2_filtered, CV_RANSAC);
-
-	return H;
+	else
+		return false;
 }
 
 
 Mat OrderImages::computeHMOCK(const vector<DMatch>& matches)
 {
-	Mat H = computeHomographyRANSAC(KEYPOINTS[0][0], KEYPOINTS[0][0], matches);
+	Mat H;
+	computeHomographyRANSAC(KEYPOINTS[0][0], KEYPOINTS[0][0], matches, H);
 	return H;
 }
 
@@ -171,7 +175,6 @@ void OrderImages::inOrOut(const vector<Point2f>& line, const vector<Point2f>& ve
 	outLabels.resize(vectices2Label.size(), false);
 	for (uint8 i = 0; i < vectices2Label.size() - 1; i++)
 	{
-		cout << (lineNormal).dot(vectices2Label[i] - lineMid) << endl;
 		( (lineNormal).dot(vectices2Label[i] - lineMid) > -2e-1 ) ? outLabels[i] = true : outLabels[i] = false;
  	}
 	outLabels[outLabels.size() - 1] = outLabels[0];
@@ -269,11 +272,7 @@ float OrderImages::computeOverlappedArea(const Size im1, const Size im2, const M
 
 	vector<Point2f> ROI;
 	overlappingArea(C1, Point2f( (im1.height - 1 ) / 2, ( im1.width - 1 ) / 2 ), C2t_, ROI);
-	for (uint8 i = 0; i < ROI.size(); i++)
-	{
-		cout << ROI[i] << endl;
-	}
-
+	
 	double areaC1 = im1.width * im1.height;
 	double areaROI = contourArea(ROI);
 
@@ -287,4 +286,73 @@ float OrderImages::computeAreaMOCK(uint8 im1N, uint8 im2N, Mat H)
 	im1 = PYRAMID[0][im1N].size();
 	im2 = PYRAMID[0][im2N].size();
 	return computeOverlappedArea(im1, im2, H);
+}
+
+
+void OrderImages::findNNimage(const vector<String>& inTODO, const uint8 level, vector<String>& outNNList)
+{
+	vector<String> todo_ = inTODO;
+	uint16 im1 = findStringidx(imNameList, todo_[0]);
+	outNNList.push_back(todo_[0]);
+	todo_.erase(todo_.begin());
+	while (todo_.size() != 0)
+	{
+		vector< Mat > desp_, pyr_;
+		vector<vector<KeyPoint>> kp_;
+		desp_.resize(todo_.size(), Mat::zeros(3, 3, CV_32FC1));
+		pyr_.resize(todo_.size(), Mat::zeros(3, 3, CV_32FC1));
+		kp_.resize(todo_.size(), vector<KeyPoint>(1, KeyPoint()));
+		uint16 imIdx_;
+		for (uint8 i = 0; i < todo_.size(); i++)
+		{
+			imIdx_ = findStringidx(imNameList, todo_[i]);
+			pyr_[i] = PYRAMID[level][imIdx_];
+			desp_[i] = DESCRIPTORS[level][imIdx_];
+			kp_[i] = KEYPOINTS[level][imIdx_];
+		}
+		vector<vector<DMatch>> match, good_match;
+		findMatchesFLANN(DESCRIPTORS[level][im1], desp_, match, good_match);
+		uint16 best_match;
+		float prevBestOverlap = 0;
+
+		for (uint8 i = 0; i < todo_.size(); i++)
+		{
+			Mat H;
+			if (computeHomographyRANSAC(KEYPOINTS[level][im1], kp_[i], good_match[i], H))
+			{
+
+				float perOverlap_ = computeOverlappedArea(PYRAMID[level][im1].size(), pyr_[i].size(), H);
+				cout << perOverlap_ << endl;
+				if (perOverlap_ > prevBestOverlap)
+				{
+					best_match = i;
+					prevBestOverlap = perOverlap_;
+				}
+			}
+		}
+		outNNList.push_back(todo_[best_match]);
+		im1 = findStringidx(imNameList, todo_[best_match]);
+		todo_.erase(todo_.begin() + best_match);
+
+	} 
+	for (uint8 i = 0; i < outNNList.size(); i++)
+		cout << outNNList[i] << endl;
+}
+
+uint16 OrderImages::findStringidx(const vector<string>& inStrVec, const String& inStr)
+{
+	for (uint16 i = 0; i < inStrVec.size(); i++)
+	{
+		if ((inStrVec[i].size() == inStr.size()) && (equal(inStrVec[i].begin(), inStrVec[i].end(), inStr.begin())))
+		{
+			return i;
+		}
+	}
+	return -1;
+}
+
+void OrderImages::findNNimagesMOCK()
+{
+	vector<String> outNNList;
+	findNNimage(imNameList, 1, outNNList);
 }

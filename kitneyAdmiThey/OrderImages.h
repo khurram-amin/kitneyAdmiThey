@@ -44,7 +44,7 @@ public:
 	void buildSIFTPyramid();
 	void findMatchesFLANN(Mat, vector<Mat>&, vector<vector<DMatch>>&, vector<vector<DMatch>>&);
 	void matchDespMOCK(vector<vector<DMatch>>&, vector<vector<DMatch>>&);
-	Mat computeHomographyRANSAC(const vector<KeyPoint>& im1_kp, const vector<KeyPoint>& im2_kp, const vector<DMatch>& matches);
+	bool computeHomographyRANSAC(const vector<KeyPoint>& im1_kp, const vector<KeyPoint>& im2_kp, const vector<DMatch>& matches, Mat& outH);
 	Mat computeHMOCK(const vector<DMatch>&);
 	void inOrOut(const vector<Point2f>& line, const vector<Point2f>& vectices2Label, const Point2f wMid, vector<bool>& outLabels);
 	void normalOfLine(const vector<Point2f>& inLine, const Point2f& inPoint, Point2f& outNormal);
@@ -52,4 +52,7 @@ public:
 	void overlappingArea(const vector<Point2f>& C1, const Point2f C1mid, const vector<Point2f>& C2, vector<Point2f>& overlappedRegion);
 	float computeOverlappedArea(const Size, const Size, const Mat);
 	float computeAreaMOCK(uint8, uint8, Mat);
+	void findNNimage(const vector<String>&, const uint8 level, vector<String>&);
+	uint16 findStringidx(const vector<String>& inStrVec, const String& inStr);
+	void findNNimagesMOCK();
 };

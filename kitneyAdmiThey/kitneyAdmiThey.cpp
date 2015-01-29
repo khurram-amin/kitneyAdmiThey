@@ -9,20 +9,22 @@
 int _tmain(int argc, _TCHAR* argv[])
 {
 	//OrderImages oIm("D:\\Khurram\\Copy\\Copy\\Thesis\\ShortestPath\\Shape from Shadow - Super=8000\\Images");
-	OrderImages oIm;
+	//OrderImages oIm("D:\\Khurram\\UTILS\\Pandora\\Images\\NewsPaper\\LR");
+	OrderImages oIm("D:\\Khurram\\UTILS\\Pandora\\Images\\PlanarScene");
 	oIm.readImFolderContents();
 	oIm.buildImPyramid();
 	oIm.buildSIFTPyramid();
 
-	vector<vector<DMatch>> match, good_match;
+	/*vector<vector<DMatch>> match, good_match;
 	oIm.matchDespMOCK(match, good_match);
 
 	Mat H = oIm.computeHMOCK(good_match[0]);
 
-	float oA = oIm.computeAreaMOCK(0, 0, H);
+	float oA = oIm.computeAreaMOCK(0, 0, H);*/
 	
+	oIm.findNNimagesMOCK();
 
-	waitKey(10000);
+	waitKey(0);
 	return 0;
 }
 
