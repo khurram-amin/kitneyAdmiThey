@@ -29,20 +29,21 @@ private:
 	string imFolderPath;
 	//string writePath = "D:\\Khurram\\Copy\\Copy\\Thesis\\ShortestPath\\Shape from Shadow - Super=8000\\Images\\KEYPOINTS_";
 	vector<std::string> imNameList;
-	uint8 NUMBER_OF_PYRAMIDS;
-	uint8 numImages;
+	uint8 NUMBER_OF_PYRAMIDS = -1;
+	uint8 numImages = -1;
 	vector< vector< Mat > > PYRAMID;
 	vector< vector< vector<KeyPoint> > > KEYPOINTS;
 	vector< vector< Mat > > DESCRIPTORS;
+	const float PER_KP_MATCHES = 0.05;
 
 public:
 	OrderImages();
 	OrderImages(String);
-	void readImFolderContents();
+	bool readImFolderContents();
 	bool powerOfTwo(uint16);
-	void buildImPyramid();
-	void buildSIFTPyramid();
-	void findMatchesFLANN(Mat, vector<Mat>&, vector<vector<DMatch>>&, vector<vector<DMatch>>&);
+	bool buildImPyramid();
+	bool buildSIFTPyramid();
+	bool findMatchesFLANN(Mat, vector<Mat>&, vector<vector<DMatch>>&, vector<vector<DMatch>>&);
 	void matchDespMOCK(vector<vector<DMatch>>&, vector<vector<DMatch>>&);
 	bool computeHomographyRANSAC(const vector<KeyPoint>& im1_kp, const vector<KeyPoint>& im2_kp, const vector<DMatch>& matches, Mat& outH);
 	Mat computeHMOCK(const vector<DMatch>&);

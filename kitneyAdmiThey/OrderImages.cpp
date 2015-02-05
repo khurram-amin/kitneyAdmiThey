@@ -1,30 +1,31 @@
 #include "stdafx.h"
 #include "OrderImages.h"
 
+// Default constructor. Sets the deafult image_folder path if none is prvided.
 OrderImages::OrderImages()
 {
+	// Default folder path to load images
 	imFolderPath = "D:\\Khurram\\UTILS\\Pandora\\Images\\New folder";
-	//cout << imFolderPath << endl;
 }
 
-
+// Single input overloaded constructor. Allows the user to set the image_folder path while creating an object.
 OrderImages::OrderImages(String tPath)
 {
-	if (tPath.empty())
+	DIR* dir;
+	if (tPath.empty() || ((dir = opendir(tPath.c_str())) == NULL))
 	{
 		cout << "Please enter a valid patd. Switching to the default path." << endl;
 		OrderImages::OrderImages();
-
 	}
 	else
 	{
 		imFolderPath = tPath;
-
+		cout << "imageFolderPath set to: " << tPath << endl;
 	}
 }
 
-
-void OrderImages::readImFolderContents()
+// Reads the content of the image folder and writes the file name in imNameList
+bool OrderImages::readImFolderContents()
 {
 	DIR *dir;
 	struct dirent *ent;
@@ -33,71 +34,111 @@ void OrderImages::readImFolderContents()
 		while ((ent = readdir(dir)) != NULL) {
 			if ((strstr(ent->d_name, ".JPG")) || (strstr(ent->d_name, ".jpg")))
 			{
-
 				imNameList.push_back(ent->d_name);
-
 			}
 		}
 		closedir(dir);
 
 		(powerOfTwo((uint16)imNameList.size())) ? NUMBER_OF_PYRAMIDS = (uint8)log2(imNameList.size()) : NUMBER_OF_PYRAMIDS = (uint8)floor(log2(imNameList.size())) + 1;
+		numImages = (uint8)imNameList.size();
 
 	}
 	else {
-
 		cout << "Cannot open directory. Check if it is either read protected or an invalid path." << endl;
-		return;
 	}
+
+	if ((numImages > 0) && (NUMBER_OF_PYRAMIDS > 0))
+	{
+		cout << "NUMBER_OF_IMAGES: " << (int)numImages << endl;
+		cout << "NUMBER_OF_PYRAMID_LEVELS: " << (int)NUMBER_OF_PYRAMIDS << endl;
+		return TRUE;
+	}
+	else
+		return FALSE;
 }
 
-
+// Checks if a number/integer is a power of two or not.
 bool OrderImages::powerOfTwo(uint16 x)
 {
 	return !(x == 0) && !(x & (x - 1));
 }
 
 
-void OrderImages::buildImPyramid()
+bool OrderImages::buildImPyramid()
 {
-	numImages = (uint8)imNameList.size();
-	PYRAMID.resize(NUMBER_OF_PYRAMIDS, vector<Mat>(numImages, Mat::eye(3, 3, CV_8UC1)));
-
-	string imName = "";
-	for (uint8 ii = 0; ii < numImages; ii++)
+	if ((numImages > 0) && (NUMBER_OF_PYRAMIDS > 0))
 	{
-		imName = imFolderPath + "\\" + imNameList[ii];
-		Mat im = imread(imName, CV_LOAD_IMAGE_GRAYSCALE);
-		for (uint8 jj = 0; jj < NUMBER_OF_PYRAMIDS; jj++)
+		PYRAMID.resize(NUMBER_OF_PYRAMIDS, vector<Mat>(numImages, Mat::eye(3, 3, CV_8UC1)));
+
+		string imName = "";
+		for (uint8 ii = 0; ii < numImages; ii++)
 		{
-			resize(im, PYRAMID[jj][ii], Size(0, 0), (double)((double)(jj + 1) / (double)NUMBER_OF_PYRAMIDS), (double)((double)(jj + 1) / (double)NUMBER_OF_PYRAMIDS), INTER_LINEAR);
+			imName = imFolderPath + "\\" + imNameList[ii];
+			Mat im = imread(imName, CV_LOAD_IMAGE_GRAYSCALE);
+			for (uint8 jj = 0; jj < NUMBER_OF_PYRAMIDS; jj++)
+			{
+				resize(im, PYRAMID[jj][ii], Size(0, 0), (double)((double)(jj + 1) / (double)NUMBER_OF_PYRAMIDS), (double)((double)(jj + 1) / (double)NUMBER_OF_PYRAMIDS), INTER_LINEAR);
+			}
+			imName = "";
 		}
-		imName = "";
 	}
+	else
+	{
+		cout << "It seems like you havent called read_image_folder_contenets yet." << endl;
+	}
+
+	if (PYRAMID.size() == NUMBER_OF_PYRAMIDS && PYRAMID[0].size() == numImages)
+	{
+		cout << "PYRAMID BUILT !!! " << endl;
+		return TRUE;
+	}
+	else
+		return FALSE;
 }
 
 
-void OrderImages::buildSIFTPyramid()
+bool OrderImages::buildSIFTPyramid()
 {
-	SIFT siftObj;
-	Mat im;
-	KEYPOINTS.resize(NUMBER_OF_PYRAMIDS, vector<vector<KeyPoint>>(numImages, vector<KeyPoint>(1, KeyPoint())));
-	DESCRIPTORS.resize(NUMBER_OF_PYRAMIDS, vector<Mat>(numImages, Mat::zeros(3, 3, CV_32FC1)));
-	for (uint8 ii = 0; ii < numImages; ii++)
+	if (PYRAMID.size() == NUMBER_OF_PYRAMIDS && PYRAMID[0].size() == numImages)
 	{
-		for (uint8 jj = 0; jj < NUMBER_OF_PYRAMIDS; jj++)
-		{
+		SIFT siftObj;
+		Mat im;
+		KEYPOINTS.resize(NUMBER_OF_PYRAMIDS, vector<vector<KeyPoint>>(numImages, vector<KeyPoint>(1, KeyPoint())));
+		DESCRIPTORS.resize(NUMBER_OF_PYRAMIDS, vector<Mat>(numImages, Mat::zeros(3, 3, CV_32FC1)));
+		
+		cout << "KPs & Descp computed for images: ";
 
-			siftObj.operator()(PYRAMID[jj][ii], Mat(), KEYPOINTS[jj][ii], DESCRIPTORS[jj][ii]);
-			drawKeypoints(PYRAMID[jj][ii], KEYPOINTS[jj][ii], im);
-			//string fileName = writePath + "\\kp_" + to_string((_ULonglong)jj) + "_" + imNameList[ii];
-			//imwrite(fileName, im);
+		for (uint8 ii = 0; ii < numImages; ii++)
+		{
+			for (uint8 jj = 0; jj < NUMBER_OF_PYRAMIDS; jj++)
+			{
+
+				siftObj.operator()(PYRAMID[jj][ii], Mat(), KEYPOINTS[jj][ii], DESCRIPTORS[jj][ii]);
+				//drawKeypoints(PYRAMID[jj][ii], KEYPOINTS[jj][ii], im);
+				//string fileName = writePath + "\\kp_" + to_string((_ULonglong)jj) + "_" + imNameList[ii];
+				//imwrite(fileName, im);
+			}
+			cout<< " " << (int)ii << " ";
 		}
+		cout << endl;
+		cout << endl;
+
+		cout << "SIFT keypoints & descriptor computed for whole PYRAMID !!! " << endl;
 	}
+
+	if (KEYPOINTS.size() == PYRAMID.size() && KEYPOINTS[0].size() == PYRAMID[0].size() && DESCRIPTORS.size() == PYRAMID.size() && DESCRIPTORS[0].size() == PYRAMID[0].size() )
+		return TRUE;
+	else
+		return FALSE;
+
 }
 
 
-void OrderImages::findMatchesFLANN(Mat desp1, vector<Mat>& otherDesp, vector<vector<DMatch>>& outMatches, vector<vector<DMatch>>& outGoodMatches)
+bool OrderImages::findMatchesFLANN(Mat desp1, vector<Mat>& otherDesp, vector<vector<DMatch>>& outMatches, vector<vector<DMatch>>& outGoodMatches)
 {
+	if (desp1.rows <= 0 || desp1.cols <= 0 || otherDesp.size() <= 0)
+		return false;
+
 	FlannBasedMatcher fMatcherObj;
 	uint8 numOfImages_atClevel = (uint8)otherDesp.size();
 	outMatches.resize(numOfImages_atClevel, vector<DMatch>(1, DMatch()));
@@ -112,7 +153,7 @@ void OrderImages::findMatchesFLANN(Mat desp1, vector<Mat>& otherDesp, vector<vec
 			if (dist < min_dist) min_dist = dist;
 			if (dist > max_dist) max_dist = dist;
 		}
-		
+
 		for (uint16 k = 0; k < desp1.rows; k++)
 		{
 			if (outMatches[i][k].distance <= max(3 * min_dist, 0.99))
@@ -120,13 +161,14 @@ void OrderImages::findMatchesFLANN(Mat desp1, vector<Mat>& otherDesp, vector<vec
 				outGoodMatches[i].push_back(outMatches[i][k]);
 			}
 		}
-		
+
 	}
 	for (uint16 i = 0; i < outGoodMatches.size(); i++)
 	{
 		outMatches[i].erase(outMatches[i].begin());
 		outGoodMatches[i].erase(outGoodMatches[i].begin());
 	}
+	return true;
 }
 
 
@@ -139,7 +181,7 @@ void OrderImages::matchDespMOCK(vector<vector<DMatch>>& outMatches, vector<vecto
 bool OrderImages::computeHomographyRANSAC(const vector<KeyPoint>& im1_kp, const vector<KeyPoint>& im2_kp, const vector<DMatch>& matches, Mat& outH)
 {
 	vector<Point2f> im1_filtered, im2_filtered;
-	if ((matches.size() > 0.1*im1_kp.size()) && (matches.size() > 0.1*im2_kp.size()))
+	if ((matches.size() > PER_KP_MATCHES*im1_kp.size()) && (matches.size() > PER_KP_MATCHES*im2_kp.size()))
 	{
 		for (uint16 i = 0; i < matches.size(); i++)
 		{
@@ -175,8 +217,8 @@ void OrderImages::inOrOut(const vector<Point2f>& line, const vector<Point2f>& ve
 	outLabels.resize(vectices2Label.size(), false);
 	for (uint8 i = 0; i < vectices2Label.size() - 1; i++)
 	{
-		( (lineNormal).dot(vectices2Label[i] - lineMid) > -2e-1 ) ? outLabels[i] = true : outLabels[i] = false;
- 	}
+		((lineNormal).dot(vectices2Label[i] - lineMid) > -2e-1) ? outLabels[i] = true : outLabels[i] = false;
+	}
 	outLabels[outLabels.size() - 1] = outLabels[0];
 }
 
@@ -190,8 +232,8 @@ void OrderImages::normalOfLine(const vector<Point2f>& inLine, const Point2f& inP
 	mid.y = mid.y / 2; // (float)norm(diff);
 
 	outNormal = inPoint - mid;
-	outNormal.x = outNormal.x / (float) norm(outNormal);
-	outNormal.y = outNormal.y / (float) norm(outNormal);
+	outNormal.x = outNormal.x / (float)norm(outNormal);
+	outNormal.y = outNormal.y / (float)norm(outNormal);
 }
 
 
@@ -217,12 +259,12 @@ void OrderImages::overlappingArea(const vector<Point2f>& C1, const Point2f C1mid
 	vector < bool > vCW_inOutStatus;
 	vector<Point2f> refEdgeVW;
 	// For each edge of the viewing window
-	for (uint8 i = 0; i < C1.size()-1; i++)
+	for (uint8 i = 0; i < C1.size() - 1; i++)
 	{
-		refEdgeVW.push_back(C1[i]);		refEdgeVW.push_back(C1[i+1]);
+		refEdgeVW.push_back(C1[i]);		refEdgeVW.push_back(C1[i + 1]);
 		inOrOut(refEdgeVW, EVW, C1mid, vCW_inOutStatus);
 
-		for (uint8 j = 0; j < vCW_inOutStatus.size()-1; j++)
+		for (uint8 j = 0; j < vCW_inOutStatus.size() - 1; j++)
 		{
 			if (vCW_inOutStatus[j])
 				if (vCW_inOutStatus[j + 1])
@@ -231,7 +273,7 @@ void OrderImages::overlappingArea(const vector<Point2f>& C1, const Point2f C1mid
 				{
 					Point2f interPt_;
 					vector<Point2f> L1, L2;
-					L1.push_back(C1[i]);	L1.push_back(C1[i+1]);
+					L1.push_back(C1[i]);	L1.push_back(C1[i + 1]);
 					L2.push_back(EVW[j]);	L2.push_back(EVW[j + 1]);
 					intersBW2lines(L1, L2, interPt_);
 					overlappedRegion.push_back(interPt_);
@@ -250,6 +292,8 @@ void OrderImages::overlappingArea(const vector<Point2f>& C1, const Point2f C1mid
 				}
 			}
 		}
+		if (overlappedRegion.size() < 1)
+			break;
 		overlappedRegion.push_back(overlappedRegion[0]);
 		refEdgeVW.clear();
 		EVW.clear();
@@ -271,13 +315,14 @@ float OrderImages::computeOverlappedArea(const Size im1, const Size im2, const M
 	perspectiveTransform(C2, C2t_, H);
 
 	vector<Point2f> ROI;
-	overlappingArea(C1, Point2f( (im1.height - 1 ) / 2, ( im1.width - 1 ) / 2 ), C2t_, ROI);
-	
+	overlappingArea(C1, Point2f((im1.height - 1) / 2, (im1.width - 1) / 2), C2t_, ROI);
+	if (ROI.size() < 4)
+		return -1;
 	double areaC1 = im1.width * im1.height;
 	double areaROI = contourArea(ROI);
 
 	//return (float)areaROI;
-	return (float) ( 100 * areaROI / areaC1 );
+	return (float)(100 * areaROI / areaC1);
 }
 
 float OrderImages::computeAreaMOCK(uint8 im1N, uint8 im2N, Mat H)
@@ -291,12 +336,28 @@ float OrderImages::computeAreaMOCK(uint8 im1N, uint8 im2N, Mat H)
 
 void OrderImages::findNNimage(const vector<String>& inTODO, const uint8 level, vector<String>& outNNList)
 {
+	cout << endl;
+	cout << "Computing Nearest Neighour Image . . . " << endl;
 	vector<String> todo_ = inTODO;
 	uint16 im1 = findStringidx(imNameList, todo_[0]);
 	outNNList.push_back(todo_[0]);
 	todo_.erase(todo_.begin());
 	while (todo_.size() != 0)
 	{
+		cout << endl;
+		cout << "current state of Todo_ list at the beginning of the while loop iteration ... " << endl;
+		for (uint8 i = 0; i < todo_.size(); i++)
+			cout << todo_[i] << "  ";
+		cout << endl;
+		cout << endl;
+
+		cout << endl;
+		cout << "current state of Todo_ list at the beginning of the while loop iteration ... " << endl;
+		for (uint8 i = 0; i < outNNList.size(); i++)
+			cout << outNNList[i] << "  ";
+		cout << endl;
+		cout << endl;
+
 		vector< Mat > desp_, pyr_;
 		vector<vector<KeyPoint>> kp_;
 		desp_.resize(todo_.size(), Mat::zeros(3, 3, CV_32FC1));
@@ -312,7 +373,7 @@ void OrderImages::findNNimage(const vector<String>& inTODO, const uint8 level, v
 		}
 		vector<vector<DMatch>> match, good_match;
 		findMatchesFLANN(DESCRIPTORS[level][im1], desp_, match, good_match);
-		uint16 best_match;
+		uint16 best_match = -1;
 		float prevBestOverlap = 0;
 
 		for (uint8 i = 0; i < todo_.size(); i++)
@@ -322,7 +383,8 @@ void OrderImages::findNNimage(const vector<String>& inTODO, const uint8 level, v
 			{
 
 				float perOverlap_ = computeOverlappedArea(PYRAMID[level][im1].size(), pyr_[i].size(), H);
-				cout << perOverlap_ << endl;
+				cout << endl;
+				cout << "Overlap between image " << imNameList[im1] << " and image " << todo_[i] << " is: " << perOverlap_ << endl;
 				if (perOverlap_ > prevBestOverlap)
 				{
 					best_match = i;
@@ -330,11 +392,19 @@ void OrderImages::findNNimage(const vector<String>& inTODO, const uint8 level, v
 				}
 			}
 		}
+		if (todo_.size() == 1)
+		{
+			outNNList.push_back(todo_[0]);
+			im1 = findStringidx(imNameList, todo_[0]);
+			todo_.erase(todo_.begin());
+			break;
+		}
+			
 		outNNList.push_back(todo_[best_match]);
 		im1 = findStringidx(imNameList, todo_[best_match]);
 		todo_.erase(todo_.begin() + best_match);
 
-	} 
+	}
 	for (uint8 i = 0; i < outNNList.size(); i++)
 		cout << outNNList[i] << endl;
 }
@@ -354,5 +424,5 @@ uint16 OrderImages::findStringidx(const vector<string>& inStrVec, const String& 
 void OrderImages::findNNimagesMOCK()
 {
 	vector<String> outNNList;
-	findNNimage(imNameList, 1, outNNList);
+	findNNimage(imNameList, 3, outNNList);
 }
