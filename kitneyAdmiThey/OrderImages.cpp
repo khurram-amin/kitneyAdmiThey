@@ -334,11 +334,11 @@ float OrderImages::computeAreaMOCK(uint8 im1N, uint8 im2N, Mat H)
 }
 
 
-void OrderImages::findNNimage(const vector<String>& inTODO, const uint8 level, vector<String>& outNNList)
+void OrderImages::findNNimage(const vector<string>& inTODO, const uint8 level, vector<String>& outNNList)
 {
 	cout << endl;
 	cout << "Computing Nearest Neighour Image . . . " << endl;
-	vector<String> todo_ = inTODO;
+	vector<string> todo_ = inTODO;
 	uint16 im1 = findStringidx(imNameList, todo_[0]);
 	outNNList.push_back(todo_[0]);
 	todo_.erase(todo_.begin());
@@ -409,7 +409,7 @@ void OrderImages::findNNimage(const vector<String>& inTODO, const uint8 level, v
 		cout << outNNList[i] << endl;
 }
 
-uint16 OrderImages::findStringidx(const vector<string>& inStrVec, const String& inStr)
+uint16 OrderImages::findStringidx(const vector<string>& inStrVec, const string& inStr)
 {
 	for (uint16 i = 0; i < inStrVec.size(); i++)
 	{
@@ -424,5 +424,5 @@ uint16 OrderImages::findStringidx(const vector<string>& inStrVec, const String& 
 void OrderImages::findNNimagesMOCK()
 {
 	vector<String> outNNList;
-	findNNimage(imNameList, 3, outNNList);
+	findNNimage(imNameList, (uint8)NUMBER_OF_PYRAMIDS - 2, outNNList);
 }

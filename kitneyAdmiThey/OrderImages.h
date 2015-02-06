@@ -53,7 +53,7 @@ public:
 	void overlappingArea(const vector<Point2f>& C1, const Point2f C1mid, const vector<Point2f>& C2, vector<Point2f>& overlappedRegion);
 	float computeOverlappedArea(const Size, const Size, const Mat);
 	float computeAreaMOCK(uint8, uint8, Mat);
-	void findNNimage(const vector<String>&, const uint8 level, vector<String>&);
-	uint16 findStringidx(const vector<String>& inStrVec, const String& inStr);
+	void findNNimage(const vector<string>&, const uint8 level, vector<String>&);
+	uint16 findStringidx(const vector<string>& inStrVec, const string& inStr);
 	void findNNimagesMOCK();
 };

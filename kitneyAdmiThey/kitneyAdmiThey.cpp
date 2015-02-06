@@ -9,8 +9,8 @@
 int _tmain(int argc, _TCHAR* argv[])
 {
 	//OrderImages oIm("D:\\Khurram\\Copy\\Copy\\Thesis\\ShortestPath\\Shape from Shadow - Super=8000\\Images");
-	//OrderImages oIm("D:\\Khurram\\UTILS\\Pandora\\Images\\NewsPaper\\LR");
-	OrderImages oIm("D:\\Khurram\\UTILS\\Pandora\\Images\\REDC");
+	OrderImages oIm("D:\\Khurram\\UTILS\\Pandora\\Images\\NewsPaper\\HR");
+	//OrderImages oIm("D:\\Khurram\\UTILS\\Pandora\\Images\\REDC");
 	bool sIm = oIm.readImFolderContents();
 	bool sPy = oIm.buildImPyramid();
 	bool sSPy = oIm.buildSIFTPyramid();
