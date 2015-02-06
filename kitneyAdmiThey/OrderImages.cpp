@@ -105,7 +105,7 @@ bool OrderImages::buildSIFTPyramid()
 		Mat im;
 		KEYPOINTS.resize(NUMBER_OF_PYRAMIDS, vector<vector<KeyPoint>>(numImages, vector<KeyPoint>(1, KeyPoint())));
 		DESCRIPTORS.resize(NUMBER_OF_PYRAMIDS, vector<Mat>(numImages, Mat::zeros(3, 3, CV_32FC1)));
-		
+
 		cout << "KPs & Descp computed for images: ";
 
 		for (uint8 ii = 0; ii < numImages; ii++)
@@ -118,7 +118,7 @@ bool OrderImages::buildSIFTPyramid()
 				//string fileName = writePath + "\\kp_" + to_string((_ULonglong)jj) + "_" + imNameList[ii];
 				//imwrite(fileName, im);
 			}
-			cout<< " " << (int)ii << " ";
+			cout << " " << (int)ii << " ";
 		}
 		cout << endl;
 		cout << endl;
@@ -126,7 +126,7 @@ bool OrderImages::buildSIFTPyramid()
 		cout << "SIFT keypoints & descriptor computed for whole PYRAMID !!! " << endl;
 	}
 
-	if (KEYPOINTS.size() == PYRAMID.size() && KEYPOINTS[0].size() == PYRAMID[0].size() && DESCRIPTORS.size() == PYRAMID.size() && DESCRIPTORS[0].size() == PYRAMID[0].size() )
+	if (KEYPOINTS.size() == PYRAMID.size() && KEYPOINTS[0].size() == PYRAMID[0].size() && DESCRIPTORS.size() == PYRAMID.size() && DESCRIPTORS[0].size() == PYRAMID[0].size())
 		return TRUE;
 	else
 		return FALSE;
@@ -399,7 +399,7 @@ void OrderImages::findNNimage(const vector<string>& inTODO, const uint8 level, v
 			todo_.erase(todo_.begin());
 			break;
 		}
-			
+
 		outNNList.push_back(todo_[best_match]);
 		im1 = findStringidx(imNameList, todo_[best_match]);
 		todo_.erase(todo_.begin() + best_match);
@@ -425,4 +425,153 @@ void OrderImages::findNNimagesMOCK()
 {
 	vector<String> outNNList;
 	findNNimage(imNameList, (uint8)NUMBER_OF_PYRAMIDS - 2, outNNList);
+}
+
+bool OrderImages::computeSIFTim(string imDirPath, string imName, uint8 pyr_level)
+{
+	// verify if the imDirPath is a valid directory path. if no return an error.
+	if (imDirPath.empty())
+	{
+		cout << "imDirPath is empty. " << imDirPath << "  computeSIFTim" << endl;
+		return false;
+	}
+
+	if (!dirExists(imDirPath))
+	{
+		cout << "imDirPath does not exists. " << imDirPath << "  computeSIFTim" << endl;
+		return false;
+	}
+	// verify if the imName image exists in the provided image directroy path. if no return an error.
+	string imPath = imDirPath + "\\" + imName;
+
+	if (!fileExists(imPath))
+	{
+		cout << "A file with imName = " << imPath << " does not exists. computeSIFTim" << endl;
+		return false;
+	}
+
+	Mat im = imread(imPath, CV_LOAD_IMAGE_GRAYSCALE);
+	if (im.empty())
+	{
+		cout << "invalid image file. " << imPath << "  computeSIFTim" << endl;
+		return false;
+	}
+	resize(im, im, Size(0, 0), (double)((double)(pyr_level) / (double)NUMBER_OF_PYRAMIDS), (double)((double)(pyr_level) / (double)NUMBER_OF_PYRAMIDS), INTER_LINEAR);
+	//resize(im, PYRAMID[jj][ii], Size(0, 0), (double)((double)(jj + 1) / (double)NUMBER_OF_PYRAMIDS), (double)((double)(jj + 1) / (double)NUMBER_OF_PYRAMIDS), INTER_LINEAR);
+
+	// check if the +private directory exists in the provided imDirPath. if no, create it.
+	string pvt_dir = imDirPath + "\\+private";
+	if (!dirExists(pvt_dir))
+	{
+		string make = "mkdir " + pvt_dir;
+		system(make.c_str());
+	}
+	// check if the imName directory exists in the +private directory. if no create it.
+	string im_pvt_dir = imDirPath + "\\+private\\" + imName;
+	if (!dirExists(im_pvt_dir))
+	{
+		string make = "mkdir " + im_pvt_dir;
+		system(make.c_str());
+	}
+	// check if the imSize.kp file exists in the +imName directory. if yes load it. parse it. else compute kps and save it in two seperate files.
+	string kp_f = to_string(im.rows) + "_" + to_string(im.cols);
+	string kp_fname = im_pvt_dir + "\\kp_" + kp_f + ".yml";
+	string descp_fname = im_pvt_dir + "\\descp_" + kp_f + ".yml";
+	Mat kpsR, descpR;
+	vector<KeyPoint> kpsR_conv;
+	if (fileExists(kp_fname))
+	{
+		// load and parse the kp file and assign it to the output kp variable
+		cv::FileStorage fs1(kp_fname, cv::FileStorage::READ);
+		fs1["KeyPoint Matrix"] >> kpsR;
+		fs1.release();
+		Point2f temp_;
+		KeyPoint tempKP_;
+		for (int i = 0; i < kpsR.rows; i++)
+		{
+			temp_ = kpsR.at<Point2f>(i);
+			tempKP_.pt = temp_;
+			kpsR_conv.push_back(tempKP_);
+		}
+
+	}
+	else
+	{
+		// compute kps and save it in the file kp_fname
+		//siftObj.operator()(PYRAMID[jj][ii], Mat(), KEYPOINTS[jj][ii], DESCRIPTORS[jj][ii]);
+		SIFT siftobj;
+		vector<KeyPoint> kps;
+		Mat descp;
+		siftobj.operator()(im, Mat(), kps, descp, false);
+		std::vector<cv::KeyPoint>::iterator it;
+		std::vector<cv::Point2f> points;
+
+		for (it = kps.begin(); it != kps.end(); it++)
+		{
+			points.push_back(it->pt);
+		}
+		Mat kpsMat(points);
+
+		cv::FileStorage fs1(kp_fname, cv::FileStorage::WRITE);
+		time_t rawtime;
+		assert(fs1.isOpened());
+		time(&rawtime);
+		fs1 << "Computing Date" << asctime(localtime(&rawtime));
+		fs1 << "KeyPoint Matrix" << kpsMat;
+		fs1.release();
+
+		time(&rawtime);
+		cv::FileStorage fs2(descp_fname, FileStorage::WRITE);
+		fs2 << "Computing Date" << asctime(localtime(&rawtime));
+		fs2 << "Descriptor Matrix" << descp;
+		fs2.release();
+
+	}
+
+	// check if the +imSize.descp file exists in the +imName directory. if yes load it. parse it. else compute descriptor for given kps.
+
+	if (fileExists(descp_fname))
+	{
+		// load and parse the descp file and assign it to the output descp variable
+		cv::FileStorage fs1(descp_fname, cv::FileStorage::READ);
+		fs1["Descriptor Matrix"] >> descpR;
+		fs1.release();
+	}
+	else
+	{
+		// compute descp for the above kps and save it in the file descp_fname
+		SIFT siftobj;
+		siftobj.operator()(im, Mat(), kpsR_conv, descpR, false);
+		time_t rawtime;
+		time(&rawtime);
+		cv::FileStorage fs2(descp_fname, FileStorage::WRITE);
+		fs2 << "Computing Date" << asctime(localtime(&rawtime));
+		fs2 << "Descriptor Matrix" << descpR;
+		fs2.release();
+
+	}
+}
+
+bool OrderImages::dirExists(const std::string& dirName_in)
+{
+	DWORD ftyp = GetFileAttributesA(dirName_in.c_str());
+	if (ftyp == INVALID_FILE_ATTRIBUTES)
+		return false;  //something is wrong with your path!
+
+	if (ftyp & FILE_ATTRIBUTE_DIRECTORY)
+		return true;   // this is a directory!
+
+	return false;    // this is not a directory!
+}
+
+bool OrderImages::fileExists(const std::string& fileName_in)
+{
+	DWORD ftyp = GetFileAttributesA(fileName_in.c_str());
+	if (ftyp == INVALID_FILE_ATTRIBUTES)
+		return false;  //something is wrong with your path!
+
+	if (ftyp & FILE_ATTRIBUTE_ARCHIVE)
+		return true;   // this is a directory!
+
+	return false;    // this is not a directory!
 }

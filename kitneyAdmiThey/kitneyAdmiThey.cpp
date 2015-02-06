@@ -12,6 +12,8 @@ int _tmain(int argc, _TCHAR* argv[])
 	OrderImages oIm("D:\\Khurram\\UTILS\\Pandora\\Images\\NewsPaper\\HR");
 	//OrderImages oIm("D:\\Khurram\\UTILS\\Pandora\\Images\\REDC");
 	bool sIm = oIm.readImFolderContents();
+
+	oIm.computeSIFTim("D:\\Khurram\\UTILS\\Pandora\\Images\\NewsPaper\\HR", "002.JPG", 1);
 	bool sPy = oIm.buildImPyramid();
 	bool sSPy = oIm.buildSIFTPyramid();
 

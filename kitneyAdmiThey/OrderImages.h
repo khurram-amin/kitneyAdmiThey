@@ -6,8 +6,11 @@
 #include <string>
 #include <cmath>
 #include <vector>
+#include <windows.h>
+#include <time.h>
 
 
+#include <opencv2\opencv.hpp>
 #include <opencv2\core\core.hpp>
 #include <opencv2\highgui\highgui.hpp>
 #include <opencv2\imgproc\imgproc.hpp>
@@ -56,4 +59,8 @@ public:
 	void findNNimage(const vector<string>&, const uint8 level, vector<String>&);
 	uint16 findStringidx(const vector<string>& inStrVec, const string& inStr);
 	void findNNimagesMOCK();
+
+	bool dirExists(const std::string& dirName_in);
+	bool computeSIFTim(string imDirPath, string imName, uint8 pyr_level);
+	bool fileExists(const std::string& fileName_in);
 };
