@@ -4,18 +4,19 @@
 #include "stdafx.h"
 
 #include "OrderImages.h"
-
+#include "Tracks.h"
 
 int _tmain(int argc, _TCHAR* argv[])
 {
 	//OrderImages oIm("D:\\Khurram\\Copy\\Copy\\Thesis\\ShortestPath\\Shape from Shadow - Super=8000\\Images");
-	OrderImages oIm("D:\\Khurram\\UTILS\\Pandora\\Images\\NewsPaper\\HR");
+	//OrderImages oIm("D:\\Khurram\\UTILS\\Pandora\\Images\\NewsPaper\\HR");
 	//OrderImages oIm("D:\\Khurram\\UTILS\\Pandora\\Images\\REDC");
-	bool sIm = oIm.readImFolderContents();
+	//OrderImages oIm("D:\\Khurram\\UTILS\\Pandora\\Images\\New folder");
+	//bool sIm = oIm.readImFolderContents();
 
-	oIm.computeSIFTim("D:\\Khurram\\UTILS\\Pandora\\Images\\NewsPaper\\HR", "002.JPG", 1);
-	bool sPy = oIm.buildImPyramid();
-	bool sSPy = oIm.buildSIFTPyramid();
+	//oIm.computeSIFTim("D:\\Khurram\\UTILS\\Pandora\\Images\\NewsPaper\\HR", "002.JPG", 1);
+	//bool sPy = oIm.buildImPyramid();
+	//bool sSPy = oIm.buildSIFTPyramid();
 
 	/*vector<vector<DMatch>> match, good_match;
 	oIm.matchDespMOCK(match, good_match);
@@ -24,7 +25,13 @@ int _tmain(int argc, _TCHAR* argv[])
 
 	float oA = oIm.computeAreaMOCK(0, 0, H);*/
 	
-	oIm.findNNimagesMOCK();
+	//oIm.findNNimagesMOCK();
+
+	Tracks t1;
+	
+	t1.setNumImages(12);
+
+	cout << t1.getNumImages() << endl;
 
 	waitKey(0);
 	return 0;

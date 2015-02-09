@@ -117,7 +117,7 @@ bool OrderImages::buildSIFTPyramid()
 				//drawKeypoints(PYRAMID[jj][ii], KEYPOINTS[jj][ii], im);
 				//string fileName = writePath + "\\kp_" + to_string((_ULonglong)jj) + "_" + imNameList[ii];
 				//imwrite(fileName, im);
-			}
+			} 
 			cout << " " << (int)ii << " ";
 		}
 		cout << endl;
