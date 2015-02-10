@@ -34,12 +34,15 @@ private:
 	vector<std::string> imNameList;
 	uint8 NUMBER_OF_PYRAMIDS = -1;
 	uint8 numImages = -1;
-	vector< vector< Mat > > PYRAMID;
+	/*vector< vector< Mat > > PYRAMID;
 	vector< vector< vector<KeyPoint> > > KEYPOINTS;
-	vector< vector< Mat > > DESCRIPTORS;
+	vector< vector< Mat > > DESCRIPTORS;*/
 	const float PER_KP_MATCHES = 0.05;
 
 public:
+	vector< vector< Mat > > PYRAMID;
+	vector< vector< vector<KeyPoint> > > KEYPOINTS;
+	vector< vector< Mat > > DESCRIPTORS; 
 	OrderImages();
 	OrderImages(String);
 	bool readImFolderContents();
