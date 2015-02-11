@@ -9,26 +9,28 @@
 #include <opencv2\nonfree\nonfree.hpp>
 #include <opencv2\nonfree\features2d.hpp>
 
-#include "Utills.h"
+#include "Track.h"
 
 using namespace std;
 using namespace cv;
 
-class Tracks
+class TracksGraph
 {
 private:
-	int NUM_OF_IMAGES;
-	int NUM_OF_ADDED_IMAGES;
-	int NUM_OF_TRACKS;
-	vector<Track> _tracksAll; // will hold tracks for all images,
+	int NUM_OF_IMAGES; // Total number of images
+	int NUM_OF_TRACKS; // Total tracks 
+	vector<Track> _tracksAll; // will hold tracks
 public:
 	// Constructors
-	Tracks();
-	Tracks(const int numImages);
-	//Tracks(const int queryImgNum, const int trainImgNum, const vector<KeyPoint>& queryKps, const vector<KeyPoint>& trainKps, const vector<DMatch>& goodMatches);
+	TracksGraph(); // Deafult
+	TracksGraph(const int numImages);
+
 
 	// add tracks of iamge i
-	void addTracksImg(const int queryImgNum, const int trainImgNum, const vector<KeyPoint>& queryKps, const vector<KeyPoint>& trainKps, const vector<DMatch>& goodMatches);
+	void addTracksImg(const int img1Num, const int img2Num, const vector<KeyPoint>& kp1, const vector<KeyPoint>& kp2, const vector<DMatch>& goodMatches);
+
+	// Check if the Ring exists in the tracks
+	int checkRingExistence(const vector<Track>& tracksToSearchIn, const Ring& ringToCheck);
 
 	// Set number of images
 	void setNumImages(const int numImages);
@@ -39,24 +41,21 @@ public:
 	// Returns total number of tracks currently holded by the structure
 	int getTotalNumTracks();
 
-	// Returns total number of images whose tracks have been added to this structure
-	int getTotalNumAddedImages();
-
 	// Prune/Remove tracks spanning over one image more than once
 	void pruneTracksCyclic();
 
 	// Prune/Remove duplicate tracks
 	void pruneDuplicateTracks();
 
-	// Prune/Remove tracks spanning over images less than the given number
-	void pruneTracksLTnumIm(const int lessThan);
+	// Return Tracks which span over images more than the given number
+	void pruneTracksLTnumIm(const int lessThan, vector<vector<Ring>>& outTracks);
 	
 
 	// Return image having max number of tracks passing through it.
 	int maxTrackImg();
 
-	// Return NN image based on the given/input tracks
-	int NNImgTracks(const vector<Track>& queryTracks);
+	// Return NN image based on the given/input rings
+	int NNImgTracks(const vector<vector<Ring>>& queryTracks);
 
 	// Will plot & save the image after reconsructing all the tracks passing through image imNameList[imNum].
 	void plotTracks(const int imNum,  const std::string& dirPath, const vector<std::string>& imNameList, const std::string& saveDirPath, const std::string& saveImName);

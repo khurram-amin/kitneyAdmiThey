@@ -27,10 +27,16 @@
     <ClInclude Include="OrderImages.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Tracks.h">
+    <ClInclude Include="Utills.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Utills.h">
+    <ClInclude Include="TracksGraph.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Ring.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Track.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -44,7 +50,13 @@
     <ClCompile Include="OrderImages.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Tracks.cpp">
+    <ClCompile Include="TracksGraph.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Ring.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Track.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
