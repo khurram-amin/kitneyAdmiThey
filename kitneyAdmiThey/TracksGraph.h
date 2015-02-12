@@ -26,7 +26,7 @@ public:
 	TracksGraph(const int numImages);
 
 
-	// add tracks of iamge i
+	// add tracks of image i
 	void addTracksImg(const int img1Num, const int img2Num, const vector<KeyPoint>& kp1, const vector<KeyPoint>& kp2, const vector<DMatch>& goodMatches);
 
 	// Check if the Ring exists in the tracks
@@ -43,6 +43,7 @@ public:
 
 	// Prune/Remove tracks spanning over one image more than once
 	void pruneTracksCyclic();
+	bool cyclicRinginTrack(vector<Track>::const_iterator inTrack, vector<Point2i>& outIdxPairVec);
 
 	// Prune/Remove duplicate tracks
 	void pruneDuplicateTracks();
